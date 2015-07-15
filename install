@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+source ./common
+
+if [[ ! -d "$INSTALL_INCLUDE_PREFIX/sptr/" ]] ; then mkdir "$INSTALL_INCLUDE_PREFIX/sptr/" ; fi &&
+
+$INSTALL -m 644 "$BUILD_LIB_DIR/$LIBRARY_NAME.a" "$INSTALL_LIB_PREFIX" &&
+$INSTALL -m 644 "src/"sptr.h "$INSTALL_INCLUDE_PREFIX" &&
+$INSTALL -m 644 "src/sptr/"util.h "$INSTALL_INCLUDE_PREFIX/sptr" &&
+
+exit 0 # EX_OK

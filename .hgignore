@@ -1,0 +1,8 @@
+syntax: glob
+
+*.gch
+.clang-format
+
+syntax: regexp
+
+^output/
