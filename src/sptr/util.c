@@ -7,6 +7,9 @@
 
 #define sptr_del_ptr_array_impl(ptr, value_size, metadata, metadata_size, free_element) \
 	{ \
+		typecheck (ptr, void *); \
+		typecheck (value_size, size_t); \
+		\
 		assert (metadata_size = sizeof (size_t)); \
 		size_t element_size = * (size_t *) metadata; \
 		for (void * el = ptr; el < ptr + value_size; el += element_size) \

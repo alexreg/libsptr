@@ -5,7 +5,12 @@
 
 #define typeof(type) __typeof (type)
 
-#define auto_type __auto_type
+#define typecheck(expr, type) \
+	({ \
+		typeof (expr) _dummy1; \
+		type _dummy2 = _dummy1; \
+		(void) _dummy2; \
+	}) \
 
 #define memory_barrier() __sync_synchronize ()
 
@@ -27,6 +32,9 @@
 
 #define sptr_impl(_value_size, _init_value, _del_value, metadata) \
 	({ \
+		typecheck (_value_size, size_t); \
+		typecheck (_del_value, sptr_del_fn); \
+		\
 		struct sptr_head * head_ptr = malloc (sizeof (struct sptr_head) + sizeof (metadata) + sizeof (struct sptr_head * *) + _value_size); \
 		if (head_ptr == NULL) \
 			NULL; \
@@ -57,16 +65,23 @@
 
 #define sptr(value, _del_value, metadata) \
 	({ \
+		typecheck (_del_value, sptr_del_fn); \
+		\
 		sptr_impl (sizeof (value), sptr_init_value_assign (value), _del_value, metadata); \
 	}) \
 
 #define sptr2(ptr_size, ptr, _del_value, metadata) \
 	({ \
+		typecheck (ptr_size, size_t); \
+		typecheck (ptr, void *); \
+		\
 		sptr_impl (ptr_size, sptr_init_value_copy (ptr), _del_value, metadata); \
 	}) \
 
 #define sptr_dup(ptr) \
 	({ \
+		typecheck (ptr, void *); \
+		\
 		struct sptr_head * head_ptr = get_head_ptr (ptr); \
 		size_t ptr_size = sizeof (struct sptr_head) + head_ptr->metadata_size + sizeof (struct sptr_head * *) + head_ptr->value_size; \
 		struct sptr_head * dup_head_ptr = malloc (ptr_size); \
@@ -79,6 +94,9 @@
 
 #define sptr_resize(ptr, new_value_size) \
 	({ \
+		typecheck (ptr, void *); \
+		typecheck (new_value_size, size_t); \
+		\
 		struct sptr_head * head_ptr = get_head_ptr (ptr); \
 		size_t new_size = sizeof (struct sptr_head) + head_ptr->metadata_size + sizeof (struct sptr_head * *) + new_value_size; \
 		if (realloc (head_ptr, new_size) == NULL) \
@@ -89,6 +107,8 @@
 
 #define sptr_free(ptr) \
 	({ \
+		typecheck (ptr, void *); \
+		\
 		struct sptr_head * head_ptr = get_head_ptr (ptr); \
 		if (!atomic_acquire (&head_ptr->free_lock)) \
 		{ \
@@ -101,24 +121,32 @@
 
 #define sptr_size(ptr) \
 	({ \
+		typecheck (ptr, void *); \
+		\
 		struct sptr_head * head_ptr = get_head_ptr (ptr); \
 		head_ptr->value_size; \
 	}) \
 
 #define sptr_ref(ptr) \
 	({ \
+		typecheck (ptr, void *); \
+		\
 		struct sptr_head * head_ptr = get_head_ptr (ptr); \
 		head_ptr->ref_count; \
 	}) \
 
 #define sptr_cpy(ptr) \
 	({ \
+		typecheck (ptr, void *); \
+		\
 		struct sptr_head * head_ptr = get_head_ptr (ptr); \
 		atomic_increment (&head_ptr->ref_count); \
 	}) \
 
 #define sptr_rel(ptr) \
 	({ \
+		typecheck (ptr, void *); \
+		\
 		struct sptr_head * head_ptr = get_head_ptr (ptr); \
 		if (atomic_decrement (&head_ptr->ref_count) == 0) \
 			sptr_free (ptr); \

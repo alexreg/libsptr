@@ -18,11 +18,16 @@ typedef void (* free_fn) (void * ptr);
 
 #define sptr_array(element_type, count, _init_value, _del_element) \
 	({ \
-		sptr_impl (sizeof (element_type) * count, _init_value, sptr_del_array, ((struct sptr_array_metadata) { sizeof (element_type), _del_element })); \
+		typecheck (count, size_t); \
+		typecheck (_del_element, sptr_del_element_fn); \
+		\
+		sptr_impl (sizeof (element_type) * count, _init_value, &sptr_del_array, ((struct sptr_array_metadata) { sizeof (element_type), _del_element })); \
 	}) \
 
 #define sptr_array2(element_type, _array, _del_element) \
 	({ \
+		typecheck (_del_element, sptr_del_element_fn); \
+		\
 		element_type array[] = _array; \
 		size_t count = sizeof (array) / sizeof (element_type); \
 		sptr_array (element_type, count, sptr_init_value_copy (array), _del_element); \
