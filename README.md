@@ -8,6 +8,8 @@ The library is inspired by Franklin Mathieu's [libcsptr][GitHub Snaipe/libcsptr]
 Building
 --------
 
+**Note:** To utilise just the core functionality, it is not strictly necessary to build the library; simply include `sptr.h` in the code that uses it.
+
 To build the library, simply run `./build` from the root directory of the project. This produces all output in the `output` subdirectory.
 
 Installing
