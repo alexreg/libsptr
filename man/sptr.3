@@ -1,0 +1,287 @@
+.ds str-Lb-libsptr Smart Pointer Library for C (libsptr, -lsptr)
+.
+.Dd July 19, 2015
+.Dt SPTR 3
+.Os
+.
+.Sh NAME
+.Nm sptr ,
+.Nm sptr2 ,
+.Nm sptr_free ,
+.Nm sptr_dup ,
+.Nm sptr_resize ,
+.Nm sptr_size ,
+.Nm sptr_ref ,
+.Nm sptr_cpy ,
+.Nm sptr_rel
+.Nd smarter pointer operations
+.
+.Sh LIBRARY
+.Lb libsptr
+.
+.Sh SYNOPSIS
+.In sptr.h
+.Ft typedef\ void ( * sptr_del_fn ) ( void\ *\ value, size_t\ value_size, void\ *\ metadata, size_t\ metadata_size ) ;
+.Pp
+.Ft void *
+.Fn sptr "value" "sptr_del_fn del_value" "metadata"
+.Ft void *
+.Fn sptr2 "size_t ptr_size" "void * ptr" "sptr_del_fn del_value" "metadata"
+.Ft void
+.Fn sptr_free "void * ptr"
+.Ft void *
+.Fn sptr_dup "void * ptr"
+.Ft bool
+.Fn sptr_resize "void * ptr" "size_t new_value_size"
+.Ft size_t
+.Fn sptr_size "void * ptr"
+.Ft unsigned int
+.Fn sptr_ref "void * ptr"
+.Ft void
+.Fn sptr_cpy "void * ptr"
+.Ft void
+.Fn sptr_rel "void * ptr"
+.In sptr/util.h
+.Ft typedef\ void ( * sptr_del_element_fn ) ( void\ *\ element ) ;
+.Pp
+.Ft void *
+.Fn sptr_array "element_type" "size_t count" "init_value" "sptr_del_element_fn del_element"
+.Ft void *
+.Fn sptr_array2 "element_type" "T[] array" "sptr_del_element_fn del_element"
+.Ft void
+.Fn sptr_del_ptr "void * ptr" "size_t value_size" "void * metadata" "size_t metadata_size"
+.Ft void
+.Fn sptr_del_sptr "void * ptr" "size_t value_size" "void * metadata" "size_t metadata_size"
+.Ft void
+.Fn sptr_del_array "void * ptr" "size_t value_size" "void * metadata" "size_t metadata_size"
+.Ft void
+.Fn sptr_del_ptr_array "void * ptr" "size_t value_size" "void * metadata" "size_t metadata_size"
+.Ft void
+.Fn sptr_del_sptr_array "void * ptr" "size_t value_size" "void * metadata" "size_t metadata_size"
+.
+.Sh DESCRIPTION
+Smart pointers have the same types as their corresponding ordinary pointers in the C language, but include extra information that enables certain "smart" behaviour.
+.Bl -dash -offset indent -compact
+.It
+When a smart pointer is created, a destructor may be specified, which is called when the smart pointer is freed.
+.It
+Smart pointers are reference-counted; they are automatically freed when the reference count reaches zero.
+.It
+Any smart pointer variable tagged with the
+.Em smart
+attribute is automatically released when its scope is exited.
+.It
+Smart pointers can be manually copied, released, resized, and freed.
+.It
+Smart pointers are thread-safe and all operations on them are lock-free.
+.El
+.Pp
+The core functionality for smart pointers is defined entirely in
+.In sbuf.h ,
+and does not strictly require linking to the library.
+.Pp
+The
+.Fn sptr
+and
+.Fn sptr2
+macros create a new smart pointer.
+.Fn sptr
+creates a pointer referencing a block of memory that initially contains the value of the expression
+.Fa value ,
+which can be of any non-void type.
+.Fn sptr2
+creates a pointer copied from the value at location
+.Fa ptr ,
+of size
+.Fa size
+bytes.
+For both
+.Fn sptr
+and
+.Fn sptr2 ,
+the argument
+.Fa del_value
+specifies the function of type
+.Vt sptr_del_fn
+to call when the pointer is freed using
+.Fn sptr_free .
+Arbitrary metadata is stored along with the pointer by passing an expression to the
+.Fa metadata
+parameter.
+.Pp
+The
+.Fn sptr_free
+macro frees the block of memory allocated for the smart pointer
+.Fa ptr .
+.Pp
+The
+.Fn sptr_dup
+macro takes an existing smart pointer
+.Fa ptr
+and creates a duplicate smart pointer.
+.Pp
+The
+.Fn sptr_resize
+macro resizes the block of memory referenced by the smart pointer
+.Fa ptr
+to
+.Fa new_value_size
+bytes.
+.Pp
+The
+.Fn sptr_size
+macro gets the size of the block of memory allocated for the smart pointer
+.Fa ptr .
+.Pp
+The
+.Fn sptr_ref
+macro gets the number of active references to the smart pointer
+.Fa ptr .
+.Pp
+The
+.Fn sptr_cpy
+macro makes a new reference to the smart pointer
+.Fa ptr ,
+incrementing the reference count by one.
+.Pp
+The
+.Fn sptr_rel
+macro releases a reference to the smart pointer
+.Fa ptr ,
+decrementing the reference count by one.
+When the reference count reaches zero,
+.Fn sptr_free
+is automatically performed on the pointer.
+.Pp
+Utilities relating to smart pointers are defined in
+.In sbuf.h ,
+and requires linking to the library.
+.Pp
+The
+.Fn sptr_array
+and
+.Fn sptr_array2
+macros create a new smart pointer for storing an array.
+For both macros, the argument
+.Fa element_type
+specifies the type of the elements of the array.
+.Fn sptr_array
+creates a pointer referencing a block of memory of sufficient size to store
+.Fa count
+objects of type
+.Fa element_type .
+The array may be initialized by specifying an arbitrary expression to the
+.Fa init_value
+parameter, where
+.Vt void *
+.Va value
+is a pointer to the block of memory (the same pointer that is returned).
+The macro
+.Ql Dv noop
+should be specified in the case that no initialization is desired.
+.Fn sptr_array2
+creates a pointer for storing the contents of the array
+.Fa array .
+For both
+.Fn sptr_array
+and
+.Fn sptr_array2 ,
+the argument
+.Fa del_element
+specifies the function of type
+.Vt sptr_del_element_fn
+to call for each element of the array when the pointer is freed using
+.Fn sptr_free .
+.Pp
+The functions
+.Fn sptr_del_ptr ,
+.Fn sptr_del_sptr ,
+.Fn sptr_del_array ,
+.Fn sptr_del_ptr_array ,
+and
+.Fn sptr_del_sptr_array
+are all smart pointer destructors (of type
+.Vt sptr_del_fn ) ,
+and are intended to be passed as the
+.Fa del_value
+argument to the
+.Fn sptr
+and
+.Fn sptr2
+macros or composed into other user-defined destructors.
+.
+.Sh RETURN VALUES
+The
+.Fn sptr
+and
+.Fn sptr2
+macros return the created smart pointer, or
+.Dv NULL
+if the creation failed.
+.Pp
+The 
+.Fn sptr_dup
+macro returns the duplicate smart pointer, or
+.Dv NULL
+if the duplication failed.
+.Pp
+The
+.Fn sptr_resize
+macro returns
+.Dv true
+if the smart pointer was resized, or
+.Dv false
+if the resize operation failed.
+.Pp
+The
+.Fn sptr_size
+macro returns the size in bytes of the block of memory referenced by the smart pointer.
+.Pp
+The
+.Fn sptr_ref
+macro returns the number of active references to the smart pointer.
+.Pp
+The
+.Fn sptr_array
+and
+.Fn sptr_array2
+macros return the created smart pointers, or
+.Dv NULL
+if the creation failed.
+.
+.Sh ERRORS
+The
+.Fn sptr ,
+.Fn sptr2 ,
+.Fn sptr_dup ,
+.Fn sptr_array ,
+and
+.Fn sptr_array2
+macros may fail and set
+.Va errno
+for any of the errors specified for the routine
+.Xr malloc 3 .
+.Pp
+The
+.Fn sptr_resize
+macro may fail and set
+.Va errno
+for any of the errors specified for the routine
+.Xr realloc 3 .
+.Pp
+The
+.Fn sptr_free
+and
+.Fn sptr_rel
+macros may fail and set
+.Va errno
+for any of the errors specified for the routine
+.Xr free 3 .
+.
+.Sh SEE ALSO
+.Xr free 3 ,
+.Xr malloc 3 ,
+.Xr realloc 3
+.
+.Sh AUTHORS
+.An Alexander Regueiro Aq Mt alex@noldorin.com
