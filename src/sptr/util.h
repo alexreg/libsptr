@@ -12,8 +12,6 @@ struct sptr_array_metadata
 	sptr_del_element_fn del_element;
 };
 
-typedef void (* free_fn) (void * ptr);
-
 #define inline_array(...) {__VA_ARGS__}
 
 #define sptr_array(element_type, count, _init_value, _del_element) \
