@@ -30,7 +30,17 @@
 
 #define get_head_ptr(ptr) (* (struct sptr_head * *) ((void *) ptr - sizeof (struct sptr_head * *)))
 
-#define sptr_impl(_value_size, _init_value, _del_value, metadata) \
+#define sptr_init_value_assign(value) \
+	({ \
+		* (typeof (value) *) value_ptr = value; \
+	}) \
+
+#define sptr_init_value_copy(value) \
+	({ \
+		memcpy (value_ptr, value, sizeof (value)); \
+	}) \
+
+#define sptr(_value_size, _init_value, _del_value, metadata) \
 	({ \
 		typecheck (_value_size, size_t); \
 		typecheck (_del_value, sptr_del_fn); \
@@ -53,29 +63,19 @@
 		value_ptr; \
 	}) \
 
-#define sptr_init_value_assign(value) \
-	({ \
-		* (typeof (value) *) value_ptr = value; \
-	}) \
-
-#define sptr_init_value_copy(value) \
-	({ \
-		memcpy (value_ptr, value, sizeof (value)); \
-	}) \
-
-#define sptr(value, _del_value, metadata) \
+#define sptr2(value, _del_value, metadata) \
 	({ \
 		typecheck (_del_value, sptr_del_fn); \
 		\
-		sptr_impl (sizeof (value), sptr_init_value_assign (value), _del_value, metadata); \
+		sptr (sizeof (value), sptr_init_value_assign (value), _del_value, metadata); \
 	}) \
 
-#define sptr2(ptr_size, ptr, _del_value, metadata) \
+#define sptr3(ptr_size, ptr, _del_value, metadata) \
 	({ \
 		typecheck (ptr_size, size_t); \
 		typecheck (ptr, void *); \
 		\
-		sptr_impl (ptr_size, sptr_init_value_copy (ptr), _del_value, metadata); \
+		sptr (ptr_size, sptr_init_value_copy (ptr), _del_value, metadata); \
 	}) \
 
 #define sptr_free(ptr) \
