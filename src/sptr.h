@@ -78,6 +78,20 @@
 		sptr_impl (ptr_size, sptr_init_value_copy (ptr), _del_value, metadata); \
 	}) \
 
+#define sptr_free(ptr) \
+	({ \
+		typecheck (ptr, void *); \
+		\
+		struct sptr_head * head_ptr = get_head_ptr (ptr); \
+		if (!atomic_acquire (&head_ptr->free_lock)) \
+		{ \
+			void * metadata_ptr = (void *) head_ptr + sizeof (struct sptr_head); \
+			if (head_ptr->del_value != NULL) \
+				head_ptr->del_value (ptr, head_ptr->value_size, metadata_ptr, head_ptr->metadata_size); \
+			free (head_ptr); \
+		} \
+	}) \
+
 #define sptr_dup(ptr) \
 	({ \
 		typecheck (ptr, void *); \
@@ -103,20 +117,6 @@
 			false; \
 		head_ptr->value_size = new_value_size; \
 		true; \
-	}) \
-
-#define sptr_free(ptr) \
-	({ \
-		typecheck (ptr, void *); \
-		\
-		struct sptr_head * head_ptr = get_head_ptr (ptr); \
-		if (!atomic_acquire (&head_ptr->free_lock)) \
-		{ \
-			void * metadata_ptr = (void *) head_ptr + sizeof (struct sptr_head); \
-			if (head_ptr->del_value != NULL) \
-				head_ptr->del_value (ptr, head_ptr->value_size, metadata_ptr, head_ptr->metadata_size); \
-			free (head_ptr); \
-		} \
 	}) \
 
 #define sptr_size(ptr) \
