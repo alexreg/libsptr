@@ -7,6 +7,7 @@
 .Sh NAME
 .Nm sptr ,
 .Nm sptr2 ,
+.Nm sptr3 ,
 .Nm sptr_free ,
 .Nm sptr_dup ,
 .Nm sptr_resize ,
@@ -24,15 +25,17 @@
 .Ft typedef\ void ( * sptr_del_fn ) ( void\ *\ value, size_t\ value_size, void\ *\ metadata, size_t\ metadata_size ) ;
 .Pp
 .Ft void *
-.Fn sptr "value" "sptr_del_fn del_value" "metadata"
+.Fn sptr "size" "init_value" "sptr_del_fn del_value" "metadata"
 .Ft void *
-.Fn sptr2 "size_t ptr_size" "void * ptr" "sptr_del_fn del_value" "metadata"
+.Fn sptr2 "value" "sptr_del_fn del_value" "metadata"
+.Ft void *
+.Fn sptr3 "size_t ptr_size" "void * ptr" "sptr_del_fn del_value" "metadata"
 .Ft void
 .Fn sptr_free "void * ptr"
 .Ft void *
 .Fn sptr_dup "void * ptr"
 .Ft bool
-.Fn sptr_resize "void * ptr" "size_t new_value_size"
+.Fn sptr_resize "void * ptr" "size_t new_size"
 .Ft size_t
 .Fn sptr_size "void * ptr"
 .Ft unsigned int
@@ -81,24 +84,39 @@ The core functionality for smart pointers is defined entirely in
 and does not strictly require linking to the library.
 .Pp
 The
-.Fn sptr
+.Fn sptr ,
+.Fn sptr2 ,
 and
-.Fn sptr2
+.Fn sptr3
 macros create a new smart pointer.
 .Fn sptr
+creates a pointer referencing a block of memory of size
+.Fa size
+bytes.
+The array may be initialized by specifying an arbitrary expression (constructor) to the
+.Fa init_value
+parameter, where
+.Vt void *
+.Va value
+is a pointer to the block of memory (the same pointer that is returned);
+the macro
+.Ql Dv noop
+should be specified if no initialization is desired.
+.Fn sptr2
 creates a pointer referencing a block of memory that initially contains the value of the expression
 .Fa value ,
 which can be of any non-void type.
-.Fn sptr2
+.Fn sptr3
 creates a pointer copied from the value at location
 .Fa ptr ,
 of size
 .Fa size
 bytes.
-For both
-.Fn sptr
-and
+For all of
+.Fn sptr ,
 .Fn sptr2 ,
+and
+.Fn sptr3 ,
 the argument
 .Fa del_value
 specifies the function of type
@@ -125,7 +143,7 @@ The
 macro resizes the block of memory referenced by the smart pointer
 .Fa ptr
 to
-.Fa new_value_size
+.Fa new_size
 bytes.
 .Pp
 The
@@ -170,15 +188,11 @@ creates a pointer referencing a block of memory of sufficient size to store
 .Fa count
 objects of type
 .Fa element_type .
-The array may be initialized by specifying an arbitrary expression to the
+The array may be initialized by specifying an arbitrary expression (constructor) to the
 .Fa init_value
-parameter, where
-.Vt void *
-.Va value
-is a pointer to the block of memory (the same pointer that is returned).
-The macro
-.Ql Dv noop
-should be specified in the case that no initialization is desired.
+parameter, as for the
+.Fn sptr
+macro.
 .Fn sptr_array2
 creates a pointer for storing the contents of the array
 .Fa array .
@@ -204,17 +218,19 @@ are all smart pointer destructors (of type
 .Vt sptr_del_fn ) ,
 and are intended to be passed as the
 .Fa del_value
-argument to the
-.Fn sptr
+argument to
+.Fn sptr ,
+.Fn sptr2 ,
 and
-.Fn sptr2
-macros or composed into other user-defined destructors.
+.Fn sptr3
+or composed into other user-defined destructors.
 .
 .Sh RETURN VALUES
 The
-.Fn sptr
+.Fn sptr ,
+.Fn sptr2 ,
 and
-.Fn sptr2
+.Fn sptr3
 macros return the created smart pointer, or
 .Dv NULL
 if the creation failed.
@@ -253,6 +269,7 @@ if the creation failed.
 The
 .Fn sptr ,
 .Fn sptr2 ,
+.Fn sptr 3 ,
 .Fn sptr_dup ,
 .Fn sptr_array ,
 and
