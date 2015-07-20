@@ -40,19 +40,19 @@
 		memcpy (value_ptr, value, sizeof (value)); \
 	}) \
 
-#define sptr(_value_size, _init_value, _del_value, metadata) \
+#define sptr(_size, _init_value, _del_value, metadata) \
 	({ \
-		typecheck (_value_size, size_t); \
+		typecheck (_size, size_t); \
 		typecheck (_del_value, sptr_del_fn); \
 		\
-		struct sptr_head * head_ptr = malloc (sizeof (struct sptr_head) + sizeof (metadata) + sizeof (struct sptr_head * *) + _value_size); \
+		struct sptr_head * head_ptr = malloc (sizeof (struct sptr_head) + sizeof (metadata) + sizeof (struct sptr_head * *) + _size); \
 		if (head_ptr == NULL) \
 			NULL; \
 		head_ptr->del_value = _del_value; \
 		head_ptr->free_lock = false; \
 		head_ptr->ref_count = 1; \
 		head_ptr->metadata_size = sizeof (metadata); \
-		head_ptr->value_size = _value_size; \
+		head_ptr->value_size = _size; \
 		\
 		typeof (metadata) * metadata_ptr = (void *) head_ptr + sizeof (struct sptr_head); \
 		*metadata_ptr = metadata; \
@@ -106,16 +106,16 @@
 		dup_head_ptr; \
 	}) \
 
-#define sptr_resize(ptr, new_value_size) \
+#define sptr_resize(ptr, new_size) \
 	({ \
 		typecheck (ptr, void *); \
-		typecheck (new_value_size, size_t); \
+		typecheck (new_size, size_t); \
 		\
 		struct sptr_head * head_ptr = get_head_ptr (ptr); \
-		size_t new_size = sizeof (struct sptr_head) + head_ptr->metadata_size + sizeof (struct sptr_head * *) + new_value_size; \
+		size_t new_size = sizeof (struct sptr_head) + head_ptr->metadata_size + sizeof (struct sptr_head * *) + new_size; \
 		if (realloc (head_ptr, new_size) == NULL) \
 			false; \
-		head_ptr->value_size = new_value_size; \
+		head_ptr->value_size = new_size; \
 		true; \
 	}) \
 
