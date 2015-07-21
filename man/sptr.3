@@ -51,6 +51,8 @@
 .Fn sptr_array "element_type" "size_t count" "init_value" "sptr_del_element_fn del_element"
 .Ft void *
 .Fn sptr_array2 "element_type" "T[] array" "sptr_del_element_fn del_element"
+.Ft bool
+.Fn sptr_array_resize "void * ptr" "size_t new_count"
 .Ft void
 .Fn sptr_del_ptr "void * ptr" "size_t value_size" "void * metadata" "size_t metadata_size"
 .Ft void
@@ -207,6 +209,14 @@ specifies the function of type
 to call for each element of the array when the pointer is freed using
 .Fn sptr_free .
 .Pp
+The
+.Fn sptr_array_resize
+macro resizes the block of memory referenced by the array smart pointer
+.Fa ptr
+to
+.Fa new_size
+objects of the element type.
+.Pp
 The functions
 .Fn sptr_del_ptr ,
 .Fn sptr_del_sptr ,
@@ -281,7 +291,9 @@ for any of the errors specified for the routine
 .Pp
 The
 .Fn sptr_resize
-macro may fail and set
+and
+.Fn sptr_array_resize
+macros may fail and set
 .Va errno
 for any of the errors specified for the routine
 .Xr realloc 3 .

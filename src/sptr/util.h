@@ -31,6 +31,16 @@ struct sptr_array_metadata
 		sptr_array (element_type, count, sptr_init_value_copy (array), _del_element); \
 	}) \
 
+#define sptr_array_resize(ptr, new_count) \
+	({ \
+		typecheck (ptr, void *); \
+		typecheck (new_count, size_t); \
+		\
+		struct sptr_head * head_ptr = get_head_ptr (ptr); \
+		struct sptr_array_metadata * metadata = head_ptr->metadata; \
+		sptr_resize (ptr, sptr_array_metadata->element_size * new_count); \
+	}) \
+
 void sptr_del_ptr (void * ptr, size_t value_size, void * metadata, size_t metadata_size);
 
 void sptr_del_sptr (void * ptr, size_t value_size, void * metadata, size_t metadata_size);
