@@ -34,11 +34,11 @@
 .Ft typedef\ void ( * sptr_del_fn ) ( void\ *\ value, size_t\ value_size, void\ *\ metadata, size_t\ metadata_size ) ;
 .Pp
 .Ft void *
-.Fn sptr "size" "init_value" "sptr_del_fn del_value" "metadata"
+.Fn sptr "size_t size" "init_value" "sptr_del_fn del_value" "U metadata"
 .Ft void *
-.Fn sptr2 "value" "sptr_del_fn del_value" "metadata"
+.Fn sptr2 "T value" "sptr_del_fn del_value" "U metadata"
 .Ft void *
-.Fn sptr3 "size_t ptr_size" "void * ptr" "sptr_del_fn del_value" "metadata"
+.Fn sptr3 "size_t ptr_size" "void * ptr" "sptr_del_fn del_value" "U metadata"
 .Ft void
 .Fn sptr_free "void * ptr"
 .Ft void *
