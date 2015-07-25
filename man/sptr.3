@@ -96,6 +96,10 @@ The core functionality for smart pointers is defined entirely in
 .In sbuf.h ,
 and does not strictly require linking to the library.
 .Pp
+Note that any smart pointer that should be automatically released needs to be declared with the
+.Em smart
+attribute (before the type name of the declaration).
+.Pp
 The
 .Fn sptr ,
 .Fn sptr2 ,
