@@ -62,6 +62,8 @@
 .Fn sptr_array2 "element_type" "T[] array" "sptr_del_element_fn del_element"
 .Ft bool
 .Fn sptr_array_resize "void * ptr" "size_t new_count"
+.Ft size_t
+.Fn sptr_array_size "void * ptr"
 .Ft void
 .Fn sptr_del_ptr "void * ptr" "size_t value_size" "void * metadata" "size_t metadata_size"
 .Ft void
@@ -159,7 +161,7 @@ bytes.
 .Pp
 The
 .Fn sptr_size
-macro gets the size of the block of memory allocated for the smart pointer
+macro gets the size in bytes of the block of memory allocated for the smart pointer
 .Fa ptr .
 .Pp
 The
@@ -226,6 +228,11 @@ to
 .Fa new_size
 objects of the element type.
 .Pp
+The
+.Fn sptr_array_size
+macro gets the size of the array stored by the block of memory allocated for the array smart pointer
+.Fa ptr .
+.Pp
 The functions
 .Fn sptr_del_ptr ,
 .Fn sptr_del_sptr ,
@@ -283,6 +290,10 @@ and
 macros return the created smart pointers, or
 .Dv NULL
 if the creation failed.
+.Pp
+The
+.Fn sptr_array_size
+macro returns the size of the array referenced by the smart pointer.
 .
 .Sh ERRORS
 The
