@@ -22,9 +22,9 @@
 
 #define atomic_release(ptr) __sync_lock_release (ptr)
 
-#define cleanup_a(fn) __attribute__ ((cleanup (fn)))
+#define cleanup(fn) __attribute__ ((cleanup (fn)))
 
-#define smart cleanup_a (sptr_cleanup)
+#define smart cleanup (sptr_cleanup)
 
 #define noop ;
 
