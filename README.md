@@ -24,6 +24,8 @@ Usage
 
 The manual page for the API is `sptr(3)`.
 
+A PDF version of the manual page may be found [here](https://bitbucket.org/alexreg/libsptr/downloads/sptr.pdf).
+
 [GNU GCC]: https://gcc.gnu.org
 
 [GitHub Snaipe/libcsptr]: https://github.com/Snaipe/libcsptr
