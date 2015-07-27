@@ -5,16 +5,18 @@
 
 #include "util.h"
 
-#define sptr_del_ptr_array_impl(ptr, value_size, metadata, metadata_size, free_element) \
-	{ \
-		typecheck (ptr, void *); \
-		typecheck (value_size, size_t); \
+#define sptr_del_ptr_array_impl(sptr_del_ptr_array__ptr, sptr_del_ptr_array__value_size, sptr_del_ptr_array__metadata, sptr_del_ptr_array__metadata_size, sptr_del_ptr_array_free_element) \
+	({ \
+		void * sptr_del_ptr_array_ptr = sptr_del_ptr_array__ptr; \
+		size_t sptr_del_ptr_array_value_size = sptr_del_ptr_array__value_size; \
+		size_t * sptr_del_ptr_array_metadata = sptr_del_ptr_array__metadata; \
+		size_t sptr_del_ptr_array_metadata_size = sptr_del_ptr_array__metadata_size; \
 		\
-		assert (metadata_size = sizeof (size_t)); \
-		size_t element_size = * (size_t *) metadata; \
-		for (void * el = ptr; el < ptr + value_size; el += element_size) \
-			free_element (el); \
-	} \
+		assert (sptr_del_ptr_array_metadata_size = sizeof (size_t)); \
+		size_t sptr_del_ptr_array_element_size = * sptr_del_ptr_array_metadata; \
+		for (void * sptr_del_ptr_array_el = sptr_del_ptr_array_ptr; sptr_del_ptr_array_el < sptr_del_ptr_array_ptr + sptr_del_ptr_array_value_size; sptr_del_ptr_array_el += sptr_del_ptr_array_element_size) \
+			sptr_del_ptr_array_free_element (sptr_del_ptr_array_el); \
+	}) \
 
 void sptr_del_ptr (void * ptr, size_t value_size, void * metadata, size_t metadata_size)
 {

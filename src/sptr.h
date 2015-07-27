@@ -3,153 +3,162 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define typeof(type) __typeof (type)
-
-#define typecheck(expr, type) \
-	({ \
-		typeof (expr) _dummy1; \
-		type _dummy2 = _dummy1; \
-		(void) _dummy2; \
-	}) \
+#define typeof(_type) __typeof (_type)
 
 #define memory_barrier() __sync_synchronize ()
 
-#define atomic_increment(ptr) __sync_add_and_fetch (ptr, 1)
+#define atomic_increment(_ptr) __sync_add_and_fetch (_ptr, 1)
 
-#define atomic_decrement(ptr) __sync_sub_and_fetch (ptr, 1)
+#define atomic_decrement(_ptr) __sync_sub_and_fetch (_ptr, 1)
 
-#define atomic_acquire(ptr) __sync_lock_test_and_set (ptr, true)
+#define atomic_acquire(_ptr) __sync_lock_test_and_set (_ptr, true)
 
-#define atomic_release(ptr) __sync_lock_release (ptr)
+#define atomic_release(_ptr) __sync_lock_release (_ptr)
 
-#define cleanup(fn) __attribute__ ((cleanup (fn)))
+#define cleanup(_fn) __attribute__ ((cleanup (_fn)))
 
 #define smart cleanup (sptr_cleanup)
 
 #define noop ;
 
-#define get_head_ptr(ptr) (* (struct sptr_head * *) ((void *) ptr - sizeof (struct sptr_head * *)))
+#define sptr_get_head_ptr(sptr_get_head_ptr_ptr) (* (struct sptr_head * *) ((void *) sptr_get_head_ptr_ptr - sizeof (struct sptr_head * *)))
 
-#define sptr_init_value_assign(value) \
+#define sptr_init_assign(sptr_init_assign_value) \
 	({ \
-		* (typeof (value) *) value_ptr = value; \
+		* (typeof (sptr_init_assign_value) *) sptr_call_init_ptr_ptr = sptr_init_assign_value; \
 	}) \
 
-#define sptr_init_value_copy(value) \
+#define sptr_init_copy(sptr_init_copy_value) \
 	({ \
-		memcpy (value_ptr, value, sizeof (value)); \
+		memcpy (sptr_call_init_ptr_ptr, sptr_init_copy_value, sizeof (sptr_init_copy_value)); \
 	}) \
 
-#define sptr(_size, _init_value, _del_value, metadata) \
+#define call_init_ptr(sptr_call_init_ptr__ptr, sptr_call_init_ptr_init) \
 	({ \
-		typecheck (_size, size_t); \
-		typecheck (_del_value, sptr_del_fn); \
+		void * sptr_call_init_ptr_ptr = sptr_call_init_ptr__ptr; \
+		sptr_call_init_ptr_init; \
+	}) \
+
+#define sptr_impl(sptr_impl__value_size, sptr_impl_init_value, sptr_impl__del_value, sptr_impl__metadata_size, sptr_impl_init_metadata) \
+	({ \
+		size_t sptr_impl_value_size = sptr_impl__value_size; \
+		sptr_del_fn sptr_impl_del_value = sptr_impl__del_value; \
+		size_t sptr_impl_metadata_size = sptr_impl__metadata_size; \
 		\
-		struct sptr_head * head_ptr = malloc (sizeof (struct sptr_head) + sizeof (metadata) + sizeof (struct sptr_head * *) + _size); \
-		if (head_ptr == NULL) \
+		struct sptr_head * sptr_impl_head_ptr = malloc (sizeof (struct sptr_head) + sptr_impl_metadata_size + sizeof (struct sptr_head * *) + sptr_impl_value_size); \
+		if (sptr_impl_head_ptr == NULL) \
 			NULL; \
-		head_ptr->del_value = _del_value; \
-		head_ptr->free_lock = false; \
-		head_ptr->ref_count = 1; \
-		head_ptr->metadata_size = sizeof (metadata); \
-		head_ptr->value_size = _size; \
+		sptr_impl_head_ptr->del_value = sptr_impl_del_value; \
+		sptr_impl_head_ptr->free_lock = false; \
+		sptr_impl_head_ptr->ref_count = 1; \
+		sptr_impl_head_ptr->metadata_size = sptr_impl_metadata_size; \
+		sptr_impl_head_ptr->value_size = sptr_impl_value_size; \
 		\
-		typeof (metadata) * metadata_ptr = (void *) head_ptr + sizeof (struct sptr_head); \
-		*metadata_ptr = metadata; \
-		*(struct sptr_head * *) ((void *) metadata_ptr + sizeof (metadata)) = head_ptr; \
-		void * value_ptr = (void *) metadata_ptr + sizeof (metadata) + sizeof (struct sptr_head * *); \
-		_init_value; \
+		void * sptr_impl_metadata_ptr = (void *) sptr_impl_head_ptr + sizeof (struct sptr_head); \
+		call_init_ptr (sptr_impl_metadata_ptr, sptr_impl_init_metadata); \
+		*(struct sptr_head * *) ((void *) sptr_impl_metadata_ptr + sptr_impl_metadata_size) = sptr_impl_head_ptr; \
+		void * sptr_impl_value_ptr = (void *) sptr_impl_metadata_ptr + sptr_impl_metadata_size + sizeof (struct sptr_head * *); \
+		call_init_ptr (sptr_impl_value_ptr, sptr_impl_init_value); \
 		memory_barrier (); \
-		value_ptr; \
+		sptr_impl_value_ptr; \
 	}) \
 
-#define sptr2(value, _del_value, metadata) \
+#define sptr(sptr__value_size, sptr_init_value, sptr__del_value, sptr_metadata) \
 	({ \
-		typecheck (_del_value, sptr_del_fn); \
+		size_t sptr_value_size = sptr__value_size; \
+		sptr_del_fn sptr_del_value = sptr__del_value; \
 		\
-		sptr (sizeof (value), sptr_init_value_assign (value), _del_value, metadata); \
+		sptr_impl (sptr_value_size, sptr_init_value, sptr_del_value, sizeof (sptr_metadata), sptr_init_assign (sptr_metadata)); \
 	}) \
 
-#define sptr3(ptr_size, ptr, _del_value, metadata) \
+#define sptr2(sptr2_value, sptr2__del_value, sptr2_metadata) \
 	({ \
-		typecheck (ptr_size, size_t); \
-		typecheck (ptr, void *); \
+		sptr_del_fn sptr2_del_value = sptr2__del_value; \
 		\
-		sptr (ptr_size, sptr_init_value_copy (ptr), _del_value, metadata); \
+		sptr (sizeof (sptr2_value), sptr_init_assign (sptr2_value), sptr2_del_value, sptr2_metadata); \
 	}) \
 
-#define sptr_free(ptr) \
+#define sptr3(sptr3__ptr_size, sptr3__ptr, sptr3__del_value, sptr3_metadata) \
 	({ \
-		typecheck (ptr, void *); \
+		size_t sptr3_ptr_size = sptr3__ptr_size; \
+		void * sptr3_ptr = sptr3__ptr; \
+		sptr_del_fn sptr3_del_value = sptr3__del_value; \
 		\
-		struct sptr_head * head_ptr = get_head_ptr (ptr); \
-		if (!atomic_acquire (&head_ptr->free_lock)) \
+		sptr (sptr3_ptr_size, sptr_init_copy (sptr3_ptr), sptr3_del_value, sptr3_metadata); \
+	}) \
+
+#define sptr_free(sptr_free__ptr) \
+	({ \
+		void * sptr_free_ptr = sptr_free__ptr; \
+		\
+		struct sptr_head * sptr_free_head_ptr = sptr_get_head_ptr (sptr_free_ptr); \
+		if (!atomic_acquire (&sptr_free_head_ptr->free_lock)) \
 		{ \
-			void * metadata_ptr = (void *) head_ptr + sizeof (struct sptr_head); \
-			if (head_ptr->del_value != NULL) \
-				head_ptr->del_value (ptr, head_ptr->value_size, metadata_ptr, head_ptr->metadata_size); \
-			free (head_ptr); \
+			void * sptr_free_metadata_ptr = (void *) sptr_free_head_ptr + sizeof (struct sptr_head); \
+			if (sptr_free_head_ptr->del_value != NULL) \
+				sptr_free_head_ptr->del_value (sptr_free_ptr, sptr_free_head_ptr->value_size, sptr_free_metadata_ptr, sptr_free_head_ptr->metadata_size); \
+			free (sptr_free_head_ptr); \
 		} \
 	}) \
 
-#define sptr_dup(ptr) \
+#define sptr_dup(sptr_dup__ptr) \
 	({ \
-		typecheck (ptr, void *); \
+		void * sptr_dup_ptr = sptr_dup__ptr; \
 		\
-		struct sptr_head * head_ptr = get_head_ptr (ptr); \
-		size_t ptr_size = sizeof (struct sptr_head) + head_ptr->metadata_size + sizeof (struct sptr_head * *) + head_ptr->value_size; \
-		struct sptr_head * dup_head_ptr = malloc (ptr_size); \
-		if (dup_head_ptr == NULL) \
-			NULL; \
-		memcpy (dup_head_ptr, head_ptr, ptr_size); \
-		memory_barrier (); \
-		dup_head_ptr; \
+		struct sptr_head * sptr_dup_head_ptr = sptr_get_head_ptr (sptr_dup_ptr); \
+		void * sptr_dup_metadata_ptr = (void *) sptr_dup_head_ptr + sizeof (struct sptr_head); \
+		void * sptr_dup_value_ptr = (void *) sptr_dup_metadata_ptr + sptr_dup_head_ptr->metadata_size + sizeof (struct sptr_head * *); \
+		sptr_impl (sptr_dup_head_ptr->value_size, sptr_init_copy (sptr_dup_value_ptr), sptr_dup_head_ptr->del_value, sptr_dup_head_ptr->metadata_size, sptr_init_copy (sptr_dup_metadata_ptr)); \
 	}) \
 
-#define sptr_resize(ptr, new_size) \
+#define sptr_resize(sptr_resize__ptr, sptr_resize__new_value_size) \
 	({ \
-		typecheck (ptr, void *); \
-		typecheck (new_size, size_t); \
+		void * sptr_resize_ptr = sptr_resize__ptr; \
+		size_t sptr_resize_new_value_size = sptr_resize__new_value_size; \
 		\
-		struct sptr_head * head_ptr = get_head_ptr (ptr); \
-		size_t new_size = sizeof (struct sptr_head) + head_ptr->metadata_size + sizeof (struct sptr_head * *) + new_size; \
-		if (realloc (head_ptr, new_size) == NULL) \
+		struct sptr_head * sptr_resize_head_ptr = sptr_get_head_ptr (sptr_resize_ptr); \
+		size_t sptr_resize_new_size = sizeof (struct sptr_head) + sptr_resize_head_ptr->metadata_size + sizeof (struct sptr_head * *) + sptr_resize_new_value_size; \
+		if (realloc (sptr_resize_head_ptr, sptr_resize_new_value_size) == NULL) \
 			false; \
-		head_ptr->value_size = new_size; \
+		sptr_resize_head_ptr->value_size = sptr_resize_new_value_size; \
 		true; \
 	}) \
 
-#define sptr_size(ptr) \
+#define sptr_size(sptr_size__ptr) \
 	({ \
-		typecheck (ptr, void *); \
+		void * sptr_size_ptr = sptr_size__ptr; \
 		\
-		struct sptr_head * head_ptr = get_head_ptr (ptr); \
-		head_ptr->value_size; \
+		struct sptr_head * sptr_size_head_ptr = sptr_get_head_ptr (sptr_size_ptr); \
+		sptr_size_head_ptr->value_size; \
 	}) \
 
-#define sptr_ref(ptr) \
+#define sptr_ref(sptr_ref__ptr) \
 	({ \
-		typecheck (ptr, void *); \
+		void * sptr_ref_ptr = sptr_ref__ptr; \
 		\
-		struct sptr_head * head_ptr = get_head_ptr (ptr); \
-		head_ptr->ref_count; \
+		struct sptr_head * sptr_ref_head_ptr = sptr_get_head_ptr (sptr_ref_ptr); \
+		sptr_ref_head_ptr->ref_count; \
 	}) \
 
-#define sptr_cpy(ptr) \
+#define sptr_cpy(sptr_cpy__ptr) \
 	({ \
-		typecheck (ptr, void *); \
+		void * sptr_cpy_ptr = sptr_cpy__ptr; \
 		\
-		struct sptr_head * head_ptr = get_head_ptr (ptr); \
-		atomic_increment (&head_ptr->ref_count); \
+		struct sptr_head * sptr_cpy_head_ptr = sptr_get_head_ptr (sptr_cpy_ptr); \
+		atomic_increment (&sptr_cpy_head_ptr->ref_count); \
+		memory_barrier (); \
+		sptr_cpy_ptr; \
 	}) \
 
-#define sptr_rel(ptr) \
+#define sptr_rel(sptr_rel__ptr) \
 	({ \
-		typecheck (ptr, void *); \
+		void * sptr_rel_ptr = sptr_rel__ptr; \
 		\
-		struct sptr_head * head_ptr = get_head_ptr (ptr); \
-		if (atomic_decrement (&head_ptr->ref_count) == 0) \
-			sptr_free (ptr); \
+		struct sptr_head * sptr_rel_head_ptr = sptr_get_head_ptr (sptr_rel_ptr); \
+		if (atomic_decrement (&sptr_rel_head_ptr->ref_count) == 0) \
+			sptr_free (sptr_rel_ptr); \
+		memory_barrier (); \
+		sptr_rel_ptr; \
 	}) \
 
 typedef void (* sptr_del_fn) (void * value, size_t value_size, void * metadata, size_t metadata_size);

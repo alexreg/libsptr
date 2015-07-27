@@ -14,40 +14,40 @@ struct sptr_array_metadata
 
 #define inline_array(...) {__VA_ARGS__}
 
-#define sptr_array(element_type, count, _init_value, _del_element) \
+#define sptr_array(sptr_array_element_type, sptr_array__count, sptr_array_init_value, sptr_array__del_element) \
 	({ \
-		typecheck (count, size_t); \
-		typecheck (_del_element, sptr_del_element_fn); \
+		size_t sptr_array_count = sptr_array__count; \
+		sptr_del_element_fn sptr_array_del_element = sptr_array__del_element; \
 		\
-		sptr (sizeof (element_type) * count, _init_value, &sptr_del_array, ((struct sptr_array_metadata) { sizeof (element_type), _del_element })); \
+		sptr (sizeof (sptr_array_element_type) * sptr_array_count, sptr_array_init_value, &sptr_del_array, ((struct sptr_array_metadata) { sizeof (sptr_array_element_type), sptr_array_del_element })); \
 	}) \
 
-#define sptr_array2(element_type, _array, _del_element) \
+#define sptr_array2(sptr_array2_element_type, sptr_array2__array, sptr_array2__del_element) \
 	({ \
-		typecheck (_del_element, sptr_del_element_fn); \
+		sptr_del_element_fn sptr_array2_del_element = sptr_array2__del_element; \
 		\
-		element_type array[] = _array; \
-		size_t count = sizeof (array) / sizeof (element_type); \
-		sptr_array (element_type, count, sptr_init_value_copy (array), _del_element); \
+		sptr_array2_element_type sptr_array2_array[] = sptr_array2__array; \
+		size_t sptr_array2_count = sizeof (sptr_array2_array) / sizeof (sptr_array2_element_type); \
+		sptr_array (sptr_array2_element_type, sptr_array2_count, sptr_init_copy (sptr_array2_array), sptr_array2_del_element); \
 	}) \
 
-#define sptr_array_resize(ptr, new_count) \
+#define sptr_array_resize(sptr_array_resize__ptr, sptr_array_resize__new_count) \
 	({ \
-		typecheck (ptr, void *); \
-		typecheck (new_count, size_t); \
+		void * sptr_array_resize_ptr = sptr_array_resize__ptr; \
+		size_t sptr_array_resize_new_count == sptr_array_resize__new_count; \
 		\
-		struct sptr_head * head_ptr = get_head_ptr (ptr); \
-		struct sptr_array_metadata * metadata = head_ptr->metadata; \
-		sptr_resize (ptr, sptr_array_metadata->element_size * new_count); \
+		struct sptr_head * sptr_array_resize_head_ptr = sptr_get_head_ptr (sptr_array_resize_ptr); \
+		struct sptr_array_metadata * sptr_array_resize_metadata = sptr_array_resize_head_ptr->metadata; \
+		sptr_resize (sptr_array_resize_ptr, sptr_array_resize_metadata->element_size * sptr_array_resize_new_count); \
 	}) \
 
-#define sptr_array_size(ptr) \
+#define sptr_array_size(sptr_array_size__ptr) \
 	({ \
-		typecheck (ptr, void *); \
+		void * sptr_array_size_ptr = sptr_array_size__ptr; \
 		\
-		struct sptr_head * head_ptr = get_head_ptr (ptr); \
-		struct sptr_array_metadata * metadata = head_ptr->metadata; \
-		sptr_size (ptr) / sptr_array_metadata->element_size; \
+		struct sptr_head * sptr_array_size_head_ptr = sptr_get_head_ptr (sptr_array_size_ptr); \
+		struct sptr_array_metadata * sptr_array_size_metadata = sptr_array_size_head_ptr->metadata; \
+		sptr_size (sptr_array_size_ptr) / sptr_array_size_metadata->element_size; \
 	}) \
 
 void sptr_del_ptr (void * ptr, size_t value_size, void * metadata, size_t metadata_size);
